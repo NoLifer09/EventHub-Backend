@@ -22,7 +22,7 @@ router.post("/:id/submit", submitRsvp);
 // Protected — organizer only
 router.use(protect);
 router.get("/:id/checkUser", getRSVPbyStatus);
-router.get("/:id/checkedIn", checkInUser);
+router.get("/:id/checkedIn", getRsvpCheckedInUsers);
 router.get("/:id/fetchCheckedUser", getRsvpCheckedInUsers);
 router.get("/:id/:status", getRSVPbyStatus);
 router.patch("/bulk-update", bulkUpdateStatus);
