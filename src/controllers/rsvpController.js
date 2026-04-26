@@ -132,15 +132,18 @@ export const submitRsvp = async (req, res) => {
 };
 
 // GET /api/rsvp/:id/:status  (protected — organizer)
+// status="ALL" returns every RSVP for the event regardless of status
+// status can also be comma-separated (e.g. "PENDING,WAITLISTED,ATTENDING")
 export const getRSVPbyStatus = async (req, res) => {
   const { status, id } = req.params;
   try {
-    const rsvps = await RSVP.find({
-      eventId: new mongoose.Types.ObjectId(id),
-      status: status,
-    });
-    if (!rsvps) return res.status(404).json({ message: "no rsvps found" });
-    res.status(200).json({ rsvps, event: rsvps.eventId });
+    const filter = { eventId: new mongoose.Types.ObjectId(id) };
+    if (status && status !== "ALL") {
+      const statuses = status.split(",").map((s) => s.trim()).filter(Boolean);
+      filter.status = statuses.length > 1 ? { $in: statuses } : statuses[0];
+    }
+    const rsvps = await RSVP.find(filter).sort({ createdAt: -1 });
+    res.status(200).json({ rsvps });
   } catch (err) {
     console.error("RSVP fetch error:", err);
     res.status(500).json({ message: err.message });
