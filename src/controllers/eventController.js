@@ -121,3 +121,17 @@ export const revokeInviteLink = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// POST /api/events/:id/restore-invite
+export const restoreInviteLink = async (req, res) => {
+  try {
+    const event = await Event.findOne({ _id: req.params.id, organizer: req.user.id });
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    if (!event.inviteCode) event.generateInviteCode();
+    else event.inviteLinkActive = true;
+    await event.save();
+    res.json({ success: true, event });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

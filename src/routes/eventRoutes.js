@@ -5,6 +5,7 @@ import {
   updateEvent,
   deleteEvent,
   revokeInviteLink,
+  restoreInviteLink,
 } from "../controllers/eventController.js";
 import {
   getEventStats,
@@ -31,6 +32,7 @@ router.get("/:id/attendees", getEventAttendees);
 router.get("/:id/export", exportAttendees);
 router.post("/:id/start", startEvent);
 router.post("/:id/revoke-invite", revokeInviteLink);
+router.post("/:id/restore-invite", restoreInviteLink);
 router.patch("/:id/suite-data", saveSuiteData);
 
 export default router;
