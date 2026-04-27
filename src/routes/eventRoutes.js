@@ -25,6 +25,7 @@ router.use(protect);
 router.get("/stats", getEventStats);
 router.get("/", getMyEvents);
 router.post("/", createEvent);
+router.patch("/:id/auto-accept", toggleAutoAccept);
 
 router.get("/:id", getEventById);
 router.put("/:id", updateEvent);
@@ -34,7 +35,6 @@ router.get("/:id/export", exportAttendees);
 router.post("/:id/start", startEvent);
 router.post("/:id/revoke-invite", revokeInviteLink);
 router.post("/:id/restore-invite", restoreInviteLink);
-router.patch("/:id/auto-accept", toggleAutoAccept);
 
 router.patch("/:id/suite-data", saveSuiteData);
 
