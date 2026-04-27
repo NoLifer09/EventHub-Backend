@@ -6,6 +6,7 @@ import {
   deleteEvent,
   revokeInviteLink,
   restoreInviteLink,
+  toggleAutoAccept,
 } from "../controllers/eventController.js";
 import {
   getEventStats,
@@ -13,7 +14,6 @@ import {
   getEventAttendees,
   startEvent,
   exportAttendees,
-  toggleAutoAccept,
 } from "../controllers/eventActionsController.js";
 import { saveSuiteData } from "../controllers/suiteController.js";
 import { protect } from "../middleware/authMiddleware.js";
