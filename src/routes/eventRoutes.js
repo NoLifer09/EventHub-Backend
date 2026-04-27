@@ -13,6 +13,7 @@ import {
   getEventAttendees,
   startEvent,
   exportAttendees,
+  toggleAutoAccept,
 } from "../controllers/eventActionsController.js";
 import { saveSuiteData } from "../controllers/suiteController.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -33,6 +34,8 @@ router.get("/:id/export", exportAttendees);
 router.post("/:id/start", startEvent);
 router.post("/:id/revoke-invite", revokeInviteLink);
 router.post("/:id/restore-invite", restoreInviteLink);
+router.patch("/:id/auto-accept", toggleAutoAccept);
+
 router.patch("/:id/suite-data", saveSuiteData);
 
 export default router;

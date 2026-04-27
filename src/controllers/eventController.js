@@ -7,12 +7,31 @@ import { sendThankYou } from "../services/Notification_Service/notificationServi
 export const createEvent = async (req, res) => {
   try {
     const {
-      title, shortDescription, description, coverImage, date, time, location,
-      capacity, enableWaitlist, allowPlusOnes, autoAccept, isPublic, rsvpQuestions, status,
+      title,
+      shortDescription,
+      description,
+      coverImage,
+      date,
+      time,
+      location,
+      capacity,
+      enableWaitlist,
+      allowPlusOnes,
+      autoAccept,
+      isPublic,
+      rsvpQuestions,
+      status,
     } = req.body;
     const event = await Event.create({
-      organizer: req.user.id, title, shortDescription, description, coverImage, date, time,
-      location, capacity,
+      organizer: req.user.id,
+      title,
+      shortDescription,
+      description,
+      coverImage,
+      date,
+      time,
+      location,
+      capacity,
       enableWaitlist: enableWaitlist ?? false,
       allowPlusOnes: allowPlusOnes ?? false,
       autoAccept: autoAccept ?? false,
@@ -33,28 +52,59 @@ export const createEvent = async (req, res) => {
 // PUT /api/events/:id
 export const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findOne({ _id: req.params.id, organizer: req.user.id });
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const event = await Event.findOne({
+      _id: req.params.id,
+      organizer: req.user.id,
+    });
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
     const prevStatus = event.status;
     const fields = [
-      "title","shortDescription","description","coverImage","date","time","location",
-      "capacity","enableWaitlist","allowPlusOnes","autoAccept","isPublic","rsvpQuestions","status",
+      "title",
+      "shortDescription",
+      "description",
+      "coverImage",
+      "date",
+      "time",
+      "location",
+      "capacity",
+      "enableWaitlist",
+      "allowPlusOnes",
+      "autoAccept",
+      "isPublic",
+      "rsvpQuestions",
+      "status",
     ];
-    fields.forEach((f) => { if (req.body[f] !== undefined) event[f] = req.body[f]; });
+    fields.forEach((f) => {
+      if (req.body[f] !== undefined) event[f] = req.body[f];
+    });
     if (event.status === EVENT_STATUS.PUBLISHED && !event.inviteCode) {
       event.generateInviteCode();
     }
     await event.save();
-    if (prevStatus !== EVENT_STATUS.COMPLETED && event.status === EVENT_STATUS.COMPLETED) {
+    if (
+      prevStatus !== EVENT_STATUS.COMPLETED &&
+      event.status === EVENT_STATUS.COMPLETED
+    ) {
       RSVP.find({ eventId: event._id, status: RSVP_STATUS.ATTENDING })
         .then((attendees) => {
           attendees.forEach((rsvp) => {
             sendThankYou(rsvp, event).catch((e) =>
-              console.error(`[Notification] Thank-you failed for ${rsvp.guestEmail}:`, e.message)
+              console.error(
+                `[Notification] Thank-you failed for ${rsvp.guestEmail}:`,
+                e.message,
+              ),
             );
           });
         })
-        .catch((e) => console.error("[Notification] Could not fetch attendees for thank-you:", e.message));
+        .catch((e) =>
+          console.error(
+            "[Notification] Could not fetch attendees for thank-you:",
+            e.message,
+          ),
+        );
     }
     res.json({ success: true, event });
   } catch (err) {
@@ -67,7 +117,8 @@ export const getMyEvents = async (req, res) => {
   try {
     const { status, search, sortBy, dateFrom, dateTo } = req.query;
     const filter = { organizer: req.user.id };
-    if (status && Object.values(EVENT_STATUS).includes(status)) filter.status = status;
+    if (status && Object.values(EVENT_STATUS).includes(status))
+      filter.status = status;
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -79,7 +130,12 @@ export const getMyEvents = async (req, res) => {
       if (dateFrom) filter.date.$gte = new Date(dateFrom);
       if (dateTo) filter.date.$lte = new Date(dateTo);
     }
-    const mongoSort = sortBy === "title" ? { title: 1 } : sortBy === "attendees" ? { date: -1 } : { date: 1 };
+    const mongoSort =
+      sortBy === "title"
+        ? { title: 1 }
+        : sortBy === "attendees"
+          ? { date: -1 }
+          : { date: 1 };
     const events = await Event.find(filter).sort(mongoSort);
     const eventIds = events.map((e) => e._id);
     const rsvpCounts = await RSVP.aggregate([
@@ -87,9 +143,15 @@ export const getMyEvents = async (req, res) => {
       { $group: { _id: "$eventId", count: { $sum: 1 } } },
     ]);
     const rsvpMap = {};
-    rsvpCounts.forEach((r) => { rsvpMap[r._id.toString()] = r.count; });
-    let enriched = events.map((event) => ({ ...event.toJSON(), rsvpCount: rsvpMap[event._id.toString()] ?? 0 }));
-    if (sortBy === "attendees") enriched.sort((a, b) => b.rsvpCount - a.rsvpCount);
+    rsvpCounts.forEach((r) => {
+      rsvpMap[r._id.toString()] = r.count;
+    });
+    let enriched = events.map((event) => ({
+      ...event.toJSON(),
+      rsvpCount: rsvpMap[event._id.toString()] ?? 0,
+    }));
+    if (sortBy === "attendees")
+      enriched.sort((a, b) => b.rsvpCount - a.rsvpCount);
     res.json({ success: true, events: enriched });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -99,11 +161,20 @@ export const getMyEvents = async (req, res) => {
 // DELETE /api/events/:id
 export const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findOne({ _id: req.params.id, organizer: req.user.id });
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const event = await Event.findOne({
+      _id: req.params.id,
+      organizer: req.user.id,
+    });
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
     await RSVP.deleteMany({ eventId: event._id });
     await event.deleteOne();
-    res.json({ success: true, message: "Event and all associated data deleted" });
+    res.json({
+      success: true,
+      message: "Event and all associated data deleted",
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -112,8 +183,14 @@ export const deleteEvent = async (req, res) => {
 // POST /api/events/:id/revoke-invite
 export const revokeInviteLink = async (req, res) => {
   try {
-    const event = await Event.findOne({ _id: req.params.id, organizer: req.user.id });
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const event = await Event.findOne({
+      _id: req.params.id,
+      organizer: req.user.id,
+    });
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
     event.revokeInviteLink();
     await event.save();
     res.json({ success: true, event });
@@ -125,8 +202,14 @@ export const revokeInviteLink = async (req, res) => {
 // POST /api/events/:id/restore-invite
 export const restoreInviteLink = async (req, res) => {
   try {
-    const event = await Event.findOne({ _id: req.params.id, organizer: req.user.id });
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const event = await Event.findOne({
+      _id: req.params.id,
+      organizer: req.user.id,
+    });
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
     if (!event.inviteCode) event.generateInviteCode();
     else event.inviteLinkActive = true;
     await event.save();
@@ -134,4 +217,15 @@ export const restoreInviteLink = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+};
+export const toggleAutoAccept = async (req, res) => {
+  const event = await Event.findOne({
+    _id: req.params.id,
+    organizer: req.user.id,
+  });
+  if (!event) return res.status(404).json({ message: "Event not found" });
+
+  event.autoAccept = !event.autoAccept;
+  await event.save();
+  res.json({ success: true, autoAccept: event.autoAccept });
 };
